@@ -13,10 +13,17 @@ function OrderLaunchEdit({ orderLaunch, produtos = [], pedidos = [], onClose, on
     // Preenche o form quando o orderLaunch, produtos e pedidos estiverem carregados
     useEffect(() => {
         if (orderLaunch && produtos.length > 0 && pedidos.length > 0) {
+            const produtoId = typeof orderLaunch.produto === 'object'
+                ? (orderLaunch.produto?._id || "")
+                : (orderLaunch.produto || "")
+            const pedidoId = typeof orderLaunch.pedido === 'object'
+                ? (orderLaunch.pedido?._id || "")
+                : (orderLaunch.pedido || "")
+
             setFormData({
                 quantidade: orderLaunch.quantidade || "",
-                produto: orderLaunch.produto?._id || "",
-                pedido: orderLaunch.pedido?._id || "",
+                produto: produtoId,
+                pedido: pedidoId,
                 _id: orderLaunch._id
             })
         }
