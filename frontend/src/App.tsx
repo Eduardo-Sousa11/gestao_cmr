@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Home/Dashboard";
 import Companies from "./pages/Companies/CompaniesList";
 import Clients from "./pages/Clients/ClientsList";
@@ -13,6 +14,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       {/* Todas as páginas do dashboard vão usar o layout */}
       <Route path="/dashboard" element={<Dashboard />}>
