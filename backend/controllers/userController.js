@@ -81,53 +81,31 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-exports.createUser = async (req, res) => {
-    try {
-        const { name, email, senha } = req.body;
-
-        // Verifica se já existe usuário com este email
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Email já cadastrado' });
-        }
-
-        // Cria usuário com password correto
-        const newUser = new User({
-            name,
-            email,
-            password: senha // 🔑 aqui
-        });
-
-        await newUser.save();
-
-        // Retorna sem a senha
-        res.status(201).json({
-            id: newUser._id,
-            name: newUser.name,
-            email: newUser.email
-        });
-
-    } catch (err) {
-        console.error("Erro real ao criar usuário:", err); // isso vai mostrar o motivo exato no console
-        res.status(500).json({ message: 'Erro ao criar usuário' });
-    }
-};
-
 exports.updateUser = async (req, res) => {
     try {
         const { name, email, senha } = req.body;
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            { name, email, senha },
-            { new: true }
-        );
-        if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+        
+        // Busca o usuário primeiro
+        const existingUser = await User.findById(req.params.id);
+        if (!existingUser) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+        // Atualiza os campos
+        existingUser.name = name;
+        existingUser.email = email;
+        
+        // Se uma nova senha foi fornecida, atualiza ela (o pre-save hook fará o hash)
+        if (senha) {
+            existingUser.senha = senha;
+        }
+        
+        // Salva o usuário (o pre-save hook aplicará o hash na senha se necessário)
+        await existingUser.save();
 
         const formattedUser = {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            senha: user.senha
+            id: existingUser._id,
+            name: existingUser.name,
+            email: existingUser.email,
+            senha: existingUser.senha
         };
         res.json(formattedUser);
     } catch (err) {
