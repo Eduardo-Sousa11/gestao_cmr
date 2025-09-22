@@ -81,6 +81,38 @@ exports.getUserById = async (req, res) => {
     }
 };
 
+exports.createUser = async (req, res) => {
+    try {
+        const { name, email, senha } = req.body;
+
+        // Verifica se já existe usuário com este email
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Email já cadastrado' });
+        }
+
+        // Cria usuário (o pre-save hook fará o hash da senha)
+        const newUser = new User({
+            name,
+            email,
+            senha
+        });
+
+        await newUser.save();
+
+        // Retorna sem a senha
+        res.status(201).json({
+            id: newUser._id,
+            name: newUser.name,
+            email: newUser.email
+        });
+
+    } catch (err) {
+        console.error("Erro ao criar usuário:", err);
+        res.status(500).json({ message: 'Erro ao criar usuário' });
+    }
+};
+
 exports.updateUser = async (req, res) => {
     try {
         const { name, email, senha } = req.body;
