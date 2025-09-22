@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa'
 import '../../styles.css'
 import OrderLaunchForm from './OrderLaunchForm'
@@ -47,6 +47,23 @@ function OrdersLaunchList() {
         fetchProducts()
         fetchOrdersLaunch()
     }, [])
+
+    const orderIdToName = useMemo(() => {
+        const map = {}
+        for (const o of orders) {
+            map[o._id] = o.name
+        }
+        return map
+    }, [orders])
+
+    const productIdToName = useMemo(() => {
+        const map = {}
+        for (const p of products) {
+            map[p._id] = p.name
+        }
+        return map
+    }, [products])
+    
 
     const handleEdit = orderLaunch => {
         setEditingOrderLaunch(orderLaunch)
@@ -118,8 +135,16 @@ function OrdersLaunchList() {
                 <tbody>
                     {ordersLaunch.map(ol => (
                         <tr key={ol._id}>
-                            <td>{ol.pedido?.name}</td>
-                            <td>{ol.produto?.name}</td>
+                            <td>{
+                                typeof ol.pedido === 'object'
+                                    ? ol.pedido?.name
+                                    : (orderIdToName[ol.pedido] || ol.pedido)
+                            }</td>
+                            <td>{
+                                typeof ol.produto === 'object'
+                                    ? ol.produto?.name
+                                    : (productIdToName[ol.produto] || ol.produto)
+                            }</td>
                             <td>{ol.quantidade}</td>
                             <td>
                                 <FaEdit className="action-icon edit" onClick={() => handleEdit(ol)} />
