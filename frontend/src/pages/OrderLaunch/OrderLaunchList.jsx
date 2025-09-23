@@ -12,10 +12,17 @@ function OrdersLaunchList() {
     const [products, setProducts] = useState([])
     const [orders, setOrders] = useState([])
 
+    const getToken = () => localStorage.getItem("token")
+
     useEffect(() => {
         const fetchOrdersLaunch = async () => {
             try {
-                const response = await api.get('/orderslaunch')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/orderslaunch', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setOrdersLaunch(response.data)
             } catch (error) {
                 console.error('Erro ao buscar lançamentos:', error)
@@ -25,7 +32,12 @@ function OrdersLaunchList() {
 
         const fetchOrders = async () => {
             try {
-                const response = await api.get('/orders')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/orders', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setOrders(response.data)
             } catch (error) {
                 console.error('Erro ao buscar pedidos:', error)
@@ -35,7 +47,12 @@ function OrdersLaunchList() {
 
         const fetchProducts = async () => {
             try {
-                const response = await api.get('/products')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/products', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setProducts(response.data)
             } catch (error) {
                 console.error('Erro ao buscar produtos:', error)
@@ -50,29 +67,27 @@ function OrdersLaunchList() {
 
     const orderIdToName = useMemo(() => {
         const map = {}
-        for (const o of orders) {
-            map[o._id] = o.name
-        }
+        for (const o of orders) map[o._id] = o.name
         return map
     }, [orders])
 
     const productIdToName = useMemo(() => {
         const map = {}
-        for (const p of products) {
-            map[p._id] = p.name
-        }
+        for (const p of products) map[p._id] = p.name
         return map
     }, [products])
-    
 
-    const handleEdit = orderLaunch => {
-        setEditingOrderLaunch(orderLaunch)
-    }
+    const handleEdit = orderLaunch => setEditingOrderLaunch(orderLaunch)
 
     const handleUpdateOrderLaunch = async updatedOrderLaunch => {
         try {
-            await api.put(`/orderslaunch/${updatedOrderLaunch._id}`, updatedOrderLaunch)
-            const fullResponse = await api.get(`/orderslaunch/${updatedOrderLaunch._id}`)
+            const token = getToken()
+            await api.put(`/orderslaunch/${updatedOrderLaunch._id}`, updatedOrderLaunch, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const fullResponse = await api.get(`/orderslaunch/${updatedOrderLaunch._id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setOrdersLaunch(
                 ordersLaunch.map(ol => ol._id === updatedOrderLaunch._id ? fullResponse.data : ol)
             )
@@ -87,7 +102,10 @@ function OrdersLaunchList() {
     const handleDelete = async orderLaunchId => {
         if (window.confirm('Deseja realmente excluir este lançamento de pedido?')) {
             try {
-                await api.delete(`/orderslaunch/${orderLaunchId}`)
+                const token = getToken()
+                await api.delete(`/orderslaunch/${orderLaunchId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setOrdersLaunch(ordersLaunch.filter(ol => ol._id !== orderLaunchId))
                 alert('Lançamento excluído com sucesso!')
             } catch (error) {
@@ -97,14 +115,17 @@ function OrdersLaunchList() {
         }
     }
 
-    const handleAddOrderLaunch = () => {
-        setIsModalOpen(true)
-    }
+    const handleAddOrderLaunch = () => setIsModalOpen(true)
 
     const handleSaveOrderLaunch = async newOrderLaunch => {
         try {
-            const response = await api.post('/orderslaunch', newOrderLaunch)
-            const fullResponse = await api.get(`/orderslaunch/${response.data._id}`)
+            const token = getToken()
+            const response = await api.post('/orderslaunch', newOrderLaunch, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const fullResponse = await api.get(`/orderslaunch/${response.data._id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setOrdersLaunch([...ordersLaunch, fullResponse.data])
             setIsModalOpen(false)
             alert('Lançamento criado com sucesso!')

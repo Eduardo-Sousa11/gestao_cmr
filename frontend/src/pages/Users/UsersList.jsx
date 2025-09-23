@@ -19,7 +19,7 @@ function UsersList() {
                         Authorization: `Bearer ${token}`
                     }
                 })
-                setUsers([res.data]) // transforma em array para map
+                setUsers([res.data])
             } catch (err) {
                 console.error("Erro ao buscar usuário:", err)
             }

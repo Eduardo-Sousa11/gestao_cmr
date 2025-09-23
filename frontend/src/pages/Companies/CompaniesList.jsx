@@ -10,10 +10,16 @@ function CompaniesList() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingCompany, setEditingCompany] = useState(null)
 
+    const getToken = () => localStorage.getItem("token")
+
     useEffect(() => {
         const fetchCompanies = async () => {
             try {
-                const response = await api.get('/companies')
+                const token = getToken()
+                if (!token) return
+                const response = await api.get('/companies', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setCompanies(response.data)
             } catch (error) {
                 console.error('Erro ao buscar empresas:', error)
@@ -23,13 +29,14 @@ function CompaniesList() {
         fetchCompanies()
     }, [])
 
-    const handleEdit = (company) => {
-        setEditingCompany(company)
-    }
+    const handleEdit = (company) => setEditingCompany(company)
 
     const handleUpdateCompany = async (updatedCompany) => {
         try {
-            const response = await api.put(`/companies/${updatedCompany._id}`, updatedCompany)
+            const token = getToken()
+            const response = await api.put(`/companies/${updatedCompany._id}`, updatedCompany, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setCompanies(companies.map(c => c._id === updatedCompany._id ? response.data : c))
             setEditingCompany(null)
             alert('Empresa atualizada com sucesso!')
@@ -42,7 +49,10 @@ function CompaniesList() {
     const handleDelete = async (companyId) => {
         if (window.confirm('Deseja realmente excluir esta empresa?')) {
             try {
-                await api.delete(`/companies/${companyId}`)
+                const token = getToken()
+                await api.delete(`/companies/${companyId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setCompanies(companies.filter(c => c._id !== companyId))
                 alert('Empresa excluída com sucesso!')
             } catch (error) {
@@ -52,13 +62,14 @@ function CompaniesList() {
         }
     }
 
-    const handleAddCompany = () => {
-        setIsModalOpen(true);
-    };
+    const handleAddCompany = () => setIsModalOpen(true)
 
     const handleSaveCompany = async (newCompany) => {
         try {
-            const response = await api.post('/companies', newCompany)
+            const token = getToken()
+            const response = await api.post('/companies', newCompany, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setCompanies([...companies, response.data])
             setIsModalOpen(false)
             alert('Empresa criada com sucesso!')
@@ -101,7 +112,6 @@ function CompaniesList() {
                 </tbody>
             </table>
 
-            {/* Modal de Cadastro */}
             {isModalOpen && (
                 <CompaniesForm
                     onClose={() => setIsModalOpen(false)}
@@ -109,7 +119,6 @@ function CompaniesList() {
                 />
             )}
 
-            {/* Modal de Edição */}
             {editingCompany && (
                 <CompaniesEdit
                     company={editingCompany}
@@ -119,7 +128,7 @@ function CompaniesList() {
             )}
 
         </div>
-    );
+    )
 }
 
 export default CompaniesList
