@@ -18,19 +18,24 @@ function OrderList() {
     }
 
     const formatDateBR = (isoDate) => {
-        if (!isoDate) return '';
-        // Pega somente a parte "yyyy-mm-dd"
-        const datePart = isoDate.split('T')[0];
-        const [year, month, day] = datePart.split('-');
-        return `${day}/${month}/${year}`;
+        if (!isoDate) return ''
+        const datePart = isoDate.split('T')[0]
+        const [year, month, day] = datePart.split('-')
+        return `${day}/${month}/${year}`
     }
 
+    const getToken = () => localStorage.getItem("token")
 
     useEffect(() => {
 
         const fetchOrders = async () => {
             try {
-                const response = await api.get('/orders')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/orders', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setOrders(response.data)
             } catch (error) {
                 console.error("Erro ao buscar pedidos:", error)
@@ -39,7 +44,12 @@ function OrderList() {
 
         const fetchCompanies = async () => {
             try {
-                const response = await api.get('/companies')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/companies', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setCompanies(response.data)
             } catch (error) {
                 console.error("Erro ao buscar empresas:", error)
@@ -48,7 +58,12 @@ function OrderList() {
 
         const fetchClients = async () => {
             try {
-                const response = await api.get('/clients')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/clients', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setClients(response.data)
             } catch (error) {
                 console.error("Erro ao buscar clientes:", error)
@@ -60,18 +75,16 @@ function OrderList() {
         fetchOrders()
     }, [])
 
-    const handleEdit = (order) => {
-        setEditingOrder(order)
-    }
+    const handleEdit = (order) => setEditingOrder(order)
 
     const handleUpdateOrder = async (updatedOrder) => {
         try {
-            const orderToSend = {
-                ...updatedOrder,
-                data: convertToISO(updatedOrder.data)
-            }
+            const token = getToken()
+            const orderToSend = { ...updatedOrder, data: convertToISO(updatedOrder.data) }
 
-            const response = await api.put(`/orders/${updatedOrder._id}`, orderToSend)
+            const response = await api.put(`/orders/${updatedOrder._id}`, orderToSend, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setOrders(orders.map(o => o._id === updatedOrder._id ? response.data : o))
             setEditingOrder(null)
             alert('Pedido atualizado com sucesso!')
@@ -81,11 +94,13 @@ function OrderList() {
         }
     }
 
-
     const handleDelete = async (orderId) => {
         if (window.confirm('Deseja realmente excluir este pedido?')) {
             try {
-                await api.delete(`/orders/${orderId}`)
+                const token = getToken()
+                await api.delete(`/orders/${orderId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setOrders(orders.filter(o => o._id !== orderId))
                 alert('Pedido excluído com sucesso!')
             } catch (error) {
@@ -95,18 +110,16 @@ function OrderList() {
         }
     }
 
-    const handleAddOrder = () => {
-        setIsModalOpen(true)
-    }
+    const handleAddOrder = () => setIsModalOpen(true)
 
     const handleSaveOrder = async (newOrder) => {
         try {
-            const orderToSend = {
-                ...newOrder,
-                data: convertToISO(newOrder.data)
-            }
+            const token = getToken()
+            const orderToSend = { ...newOrder, data: convertToISO(newOrder.data) }
 
-            const response = await api.post('/orders', orderToSend)
+            const response = await api.post('/orders', orderToSend, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setOrders([...orders, response.data])
             setIsModalOpen(false)
             alert('Pedido criado com sucesso!')
@@ -139,7 +152,7 @@ function OrderList() {
                 </thead>
                 <tbody>
                     {orders.map(order => (
-                        <tr key={order.id}>
+                        <tr key={order._id}>
                             <td>{order.name}</td>
                             <td>{order.numero}</td>
                             <td>{order.cliente}</td>
@@ -155,7 +168,6 @@ function OrderList() {
                 </tbody>
             </table>
 
-            {/* Modal de Cadastro */}
             {isModalOpen && (
                 <OrdersForm
                     empresas={companies}
@@ -165,7 +177,6 @@ function OrderList() {
                 />
             )}
 
-            {/* Modal de Edição */}
             {editingOrder && (
                 <OrdersEdit
                     order={editingOrder}
@@ -175,9 +186,8 @@ function OrderList() {
                     onSave={handleUpdateOrder}
                 />
             )}
-
         </div>
-    );
+    )
 }
 
 export default OrderList

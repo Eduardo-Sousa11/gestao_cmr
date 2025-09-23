@@ -11,10 +11,17 @@ function ClientList() {
     const [editingClient, setEditingClient] = useState(null)
     const [companies, setCompanies] = useState([])
 
+    const getToken = () => localStorage.getItem("token")
+
     useEffect(() => {
         const fetchClients = async () => {
             try {
-                const response = await api.get('/clients')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/clients', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setClients(response.data)
             } catch (error) {
                 console.error("Erro ao buscar clientes:", error)
@@ -23,7 +30,12 @@ function ClientList() {
 
         const fetchCompanies = async () => {
             try {
-                const response = await api.get('/companies')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/companies', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setCompanies(response.data)
             } catch (error) {
                 console.error("Erro ao buscar empresas:", error)
@@ -34,18 +46,19 @@ function ClientList() {
         fetchCompanies()
     }, [])
 
-    const handleEdit = (client) => {
-        setEditingClient(client)
-    }
+    const handleEdit = (client) => setEditingClient(client)
 
     const handleUpdateClient = async (updatedClient) => {
         try {
-            const response = await api.put(`/clients/${updatedClient._id}`, updatedClient)
+            const token = getToken()
+            const response = await api.put(`/clients/${updatedClient._id}`, updatedClient, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setClients(clients.map(c => c._id === updatedClient._id ? response.data : c))
             setEditingClient(null)
             alert('Cliente atualizado com sucesso!')
         } catch (error) {
-            console.error("Erro ao atualizar cliente:", error);
+            console.error("Erro ao atualizar cliente:", error)
             alert("Erro ao atualizar cliente")
         }
     }
@@ -53,7 +66,10 @@ function ClientList() {
     const handleDelete = async (clientId) => {
         if (window.confirm('Deseja realmente excluir este cliente?')) {
             try {
-                await api.delete(`/clients/${clientId}`)
+                const token = getToken()
+                await api.delete(`/clients/${clientId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setClients(clients.filter(c => c._id !== clientId))
                 alert('Cliente excluído com sucesso!')
             } catch (error) {
@@ -63,13 +79,14 @@ function ClientList() {
         }
     }
 
-    const handleAddClient = () => {
-        setIsModalOpen(true)
-    }
+    const handleAddClient = () => setIsModalOpen(true)
 
     const handleSaveClient = async (newClient) => {
         try {
-            const response = await api.post('/clients', newClient)
+            const token = getToken()
+            const response = await api.post('/clients', newClient, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setClients([...clients, response.data])
             setIsModalOpen(false)
             alert('Cliente criado com sucesso!')
@@ -100,7 +117,7 @@ function ClientList() {
                 </thead>
                 <tbody>
                     {clients.map(client => (
-                        <tr key={client.id}>
+                        <tr key={client._id}>
                             <td>{client.name}</td>
                             <td>{client.email}</td>
                             <td>{client.telefone}</td>
@@ -114,7 +131,6 @@ function ClientList() {
                 </tbody>
             </table>
 
-            {/* Modal de Cadastro */}
             {isModalOpen && (
                 <ClientForm
                     empresas={companies}
@@ -123,7 +139,6 @@ function ClientList() {
                 />
             )}
 
-            {/* Modal de Edição */}
             {editingClient && (
                 <ClientEdit
                     client={editingClient}
@@ -132,9 +147,8 @@ function ClientList() {
                     onSave={handleUpdateClient}
                 />
             )}
-
         </div>
-    );
+    )
 }
 
-export default ClientList;
+export default ClientList

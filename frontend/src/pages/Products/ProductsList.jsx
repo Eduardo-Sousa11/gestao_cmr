@@ -11,11 +11,18 @@ function ProductList() {
     const [editingProduct, setEditingProduct] = useState(null)
     const [companies, setCompanies] = useState([])
 
+    const getToken = () => localStorage.getItem("token")
+
     // Buscar produtos e empresas do backend
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await api.get('/products')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/products', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setProducts(response.data)
             } catch (error) {
                 console.error("Erro ao buscar produtos:", error)
@@ -24,7 +31,12 @@ function ProductList() {
 
         const fetchCompanies = async () => {
             try {
-                const response = await api.get('/companies')
+                const token = getToken()
+                if (!token) return
+
+                const response = await api.get('/companies', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setCompanies(response.data)
             } catch (error) {
                 console.error("Erro ao buscar empresas:", error)
@@ -35,26 +47,22 @@ function ProductList() {
         fetchCompanies()
     }, [])
 
-    const handleEdit = (product) => {
-        setEditingProduct(product)
-    }
+    const handleEdit = (product) => setEditingProduct(product)
 
     const handleUpdateProduct = async (updatedProduct) => {
         try {
+            const token = getToken()
             let valorNumerico = updatedProduct.valor
             if (typeof valorNumerico === "string") {
                 valorNumerico = parseFloat(
-                    valorNumerico
-                        .replace(/\./g, '')
-                        .replace(',', '.')
-                        .replace('R$ ', '')
+                    valorNumerico.replace(/\./g, '').replace(',', '.').replace('R$ ', '')
                 )
             }
-            const productToSend = {
-                ...updatedProduct,
-                valor: valorNumerico
-            }
-            const response = await api.put(`/products/${updatedProduct._id}`, productToSend)
+            const productToSend = { ...updatedProduct, valor: valorNumerico }
+
+            const response = await api.put(`/products/${updatedProduct._id}`, productToSend, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setProducts(products.map(p => p._id === updatedProduct._id ? response.data : p))
             setEditingProduct(null)
             alert('Produto atualizado com sucesso!')
@@ -64,11 +72,13 @@ function ProductList() {
         }
     }
 
-
     const handleDelete = async (productId) => {
         if (window.confirm('Deseja realmente excluir este produto?')) {
             try {
-                await api.delete(`/products/${productId}`)
+                const token = getToken()
+                await api.delete(`/products/${productId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 setProducts(products.filter(p => p._id !== productId))
                 alert('Produto excluído com sucesso!')
             } catch (error) {
@@ -78,29 +88,24 @@ function ProductList() {
         }
     }
 
-    const handleAddProduct = () => {
-        setIsModalOpen(true)
-    }
+    const handleAddProduct = () => setIsModalOpen(true)
 
     const handleSaveProduct = async (newProduct) => {
         try {
+            const token = getToken()
             if (!newProduct.valor) {
                 alert("Preencha o valor do produto")
                 return
             }
 
-            // Remove tudo que não é número ou vírgula, substitui vírgula por ponto
             let valorNumerico = newProduct.valor.replace(/[^\d,]/g, '').replace(',', '.')
-
-            // Converte para Number
             valorNumerico = parseFloat(valorNumerico)
 
-            const productToSend = {
-                ...newProduct,
-                valor: valorNumerico
-            }
+            const productToSend = { ...newProduct, valor: valorNumerico }
 
-            const response = await api.post('/products', productToSend)
+            const response = await api.post('/products', productToSend, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             setProducts([...products, response.data])
             setIsModalOpen(false)
             alert('Produto criado com sucesso!')
@@ -109,8 +114,6 @@ function ProductList() {
             alert("Erro ao salvar produto")
         }
     }
-
-
 
     return (
         <div className="companies-container">
@@ -133,7 +136,7 @@ function ProductList() {
                 </thead>
                 <tbody>
                     {products.map(product => (
-                        <tr key={product.id}>
+                        <tr key={product._id}>
                             <td>{product.name}</td>
                             <td>{product.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
                             <td>{product.descricao}</td>
