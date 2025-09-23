@@ -1,12 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const productController = require("../controllers/productController");
+const express = require("express")
+const router = express.Router()
+const productController = require("../controllers/productController")
+const { authMiddleware } = require('../middleware/auth')
 
-// Rotas CRUD de produtos
-router.post("/", productController.createProduct);       // Criar produto
-router.get("/", productController.getProducts);          // Listar todos
-router.get("/:id", productController.getProductById);    // Buscar por ID
-router.put("/:id", productController.updateProduct);     // Atualizar
-router.delete("/:id", productController.deleteProduct);  // Deletar
+router.post("/", authMiddleware, productController.createProduct)
+router.get("/", authMiddleware, productController.getProducts)
+router.get("/:id", authMiddleware, productController.getProductById)
+router.put("/:id", authMiddleware, productController.updateProduct)
+router.delete("/:id", authMiddleware, productController.deleteProduct)
 
-module.exports = router;
+module.exports = router

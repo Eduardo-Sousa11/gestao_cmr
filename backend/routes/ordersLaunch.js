@@ -1,12 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const orderLaunchController = require('../controllers/orderLaunchController');
+const express = require('express')
+const router = express.Router()
+const orderLaunchController = require('../controllers/orderLaunchController')
+const { authMiddleware } = require('../middleware/auth')
 
-// Rotas CRUD
-router.post('/', orderLaunchController.createOrderLaunch);       // Criar lançamento
-router.get('/', orderLaunchController.getOrdersLaunch);          // Listar todos
-router.get('/:id', orderLaunchController.getOrderLaunchById);    // Buscar por ID
-router.put('/:id', orderLaunchController.updateOrderLaunch);     // Atualizar
-router.delete('/:id', orderLaunchController.deleteOrderLaunch);  // Deletar
+router.post('/', authMiddleware, orderLaunchController.createOrderLaunch)
+router.get('/', authMiddleware, orderLaunchController.getOrdersLaunch)
+router.get('/:id', authMiddleware, orderLaunchController.getOrderLaunchById)
+router.put('/:id', authMiddleware, orderLaunchController.updateOrderLaunch)
+router.delete('/:id', authMiddleware, orderLaunchController.deleteOrderLaunch)
 
-module.exports = router;
+module.exports = router

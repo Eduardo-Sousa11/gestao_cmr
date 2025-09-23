@@ -1,5 +1,5 @@
 // models/Order.js
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const orderSchema = new mongoose.Schema({
   name: {
@@ -30,9 +30,9 @@ const orderSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true // cria createdAt e updatedAt automaticamente
-});
+})
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model('Order', orderSchema)
 
-module.exports = Order;
+module.exports = Order
 
