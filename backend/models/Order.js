@@ -1,4 +1,3 @@
-// models/Order.js
 const mongoose = require('mongoose')
 
 const orderSchema = new mongoose.Schema({
@@ -8,31 +7,33 @@ const orderSchema = new mongoose.Schema({
   },
   numero: {
     type: String,
-    required: true, // número do pedido
-    unique: true,   // cada número deve ser único
+    required: true,
+    unique: true,
   },
   cliente: {
     type: String,
-    required: true, // nome do cliente
+    required: true,
   },
   empresa: {
     type: String,
-    required: true, // nome da empresa
+    required: true,
   },
   observacao: {
     type: String,
-    default: '',    // observação opcional
+    default: '',
   },
   data: {
     type: Date,
-    required: true, // data do pedido
+    required: true,
     default: Date.now,
   },
+  owner: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  }
 }, {
-  timestamps: true // cria createdAt e updatedAt automaticamente
+  timestamps: true
 })
 
-const Order = mongoose.model('Order', orderSchema)
-
-module.exports = Order
-
+module.exports = mongoose.model('Order', orderSchema)

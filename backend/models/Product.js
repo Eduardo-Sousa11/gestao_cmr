@@ -7,7 +7,7 @@ const ProductSchema = new mongoose.Schema({
     trim: true
   },
   valor: {
-    type: Number, // melhor salvar como número em vez de string
+    type: Number,
     required: true
   },
   descricao: {
@@ -16,12 +16,16 @@ const ProductSchema = new mongoose.Schema({
     trim: true
   },
   empresa: {
-    type: String, // pode ser só o nome da empresa
+    type: String,
+    required: true
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   }
 }, {
-  timestamps: true // cria createdAt e updatedAt automáticos
+  timestamps: true
 })
 
 module.exports = mongoose.model("Product", ProductSchema)
-

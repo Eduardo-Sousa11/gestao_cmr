@@ -1,20 +1,23 @@
 const OrderLaunch = require('../models/OrderLaunch')
 
-// Criar lançamento de pedido
+// Criar lançamento vinculado ao usuário logado
 exports.createOrderLaunch = async (req, res) => {
   try {
-    const orderLaunch = new OrderLaunch(req.body)
+    const orderLaunch = new OrderLaunch({
+      ...req.body,
+      owner: req.user.id
+    })
     await orderLaunch.save()
     res.status(201).json(orderLaunch)
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: err.message })
   }
 }
 
-// Listar todos os lançamentos
+// Listar apenas lançamentos do usuário logado
 exports.getOrdersLaunch = async (req, res) => {
   try {
-    const ordersLaunch = await OrderLaunch.find()
+    const ordersLaunch = await OrderLaunch.find({ owner: req.user.id })
       .sort({ createdAt: -1 })
     res.json(ordersLaunch)
   } catch (err) {
@@ -22,33 +25,37 @@ exports.getOrdersLaunch = async (req, res) => {
   }
 }
 
-// Buscar lançamento por ID
+// Buscar lançamento por ID (apenas se for do usuário)
 exports.getOrderLaunchById = async (req, res) => {
   try {
-    const orderLaunch = await OrderLaunch.findById(req.params.id)
-    if (!orderLaunch) return res.status(404).json({ error: 'Lançamento não encontrado' })
+    const orderLaunch = await OrderLaunch.findOne({ _id: req.params.id, owner: req.user.id })
+    if (!orderLaunch) return res.status(404).json({ error: 'Lançamento não encontrado ou sem permissão' })
     res.json(orderLaunch)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
 
-// Atualizar lançamento
+// Atualizar lançamento (apenas se for do usuário)
 exports.updateOrderLaunch = async (req, res) => {
   try {
-    const orderLaunch = await OrderLaunch.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    if (!orderLaunch) return res.status(404).json({ error: 'Lançamento não encontrado' })
+    const orderLaunch = await OrderLaunch.findOneAndUpdate(
+      { _id: req.params.id, owner: req.user.id },
+      req.body,
+      { new: true, runValidators: true }
+    )
+    if (!orderLaunch) return res.status(404).json({ error: 'Lançamento não encontrado ou sem permissão' })
     res.json(orderLaunch)
   } catch (err) {
     res.status(400).json({ error: err.message })
   }
 }
 
-// Deletar lançamento
+// Deletar lançamento (apenas se for do usuário)
 exports.deleteOrderLaunch = async (req, res) => {
   try {
-    const orderLaunch = await OrderLaunch.findByIdAndDelete(req.params.id)
-    if (!orderLaunch) return res.status(404).json({ error: 'Lançamento não encontrado' })
+    const orderLaunch = await OrderLaunch.findOneAndDelete({ _id: req.params.id, owner: req.user.id })
+    if (!orderLaunch) return res.status(404).json({ error: 'Lançamento não encontrado ou sem permissão' })
     res.json({ message: 'Lançamento excluído com sucesso' })
   } catch (err) {
     res.status(500).json({ error: err.message })
