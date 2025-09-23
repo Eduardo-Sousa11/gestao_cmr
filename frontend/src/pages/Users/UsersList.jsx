@@ -11,7 +11,7 @@ function UsersList() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await api.get("/users")
+                const res = await api.get("/users/me")
                 setUsers(res.data);
             } catch (err) {
                 console.error("Erro ao buscar usuários:", err)
@@ -26,7 +26,7 @@ function UsersList() {
 
     const handleUpdateUsers = async (updatedUser) => {
         try {
-            const res = await api.put(`/users/${updatedUser.id}`, updatedUser)
+            const res = await api.put(`/users/me${updatedUser.id}`, updatedUser)
             setUsers(users.map(u => u.id === updatedUser.id ? res.data : u))
             setEditingUsers(null)
             alert("Usuário atualizado com sucesso!")
@@ -38,7 +38,7 @@ function UsersList() {
     const handleDelete = async (userId) => {
         if (window.confirm("Deseja realmente excluir este usuário?")) {
             try {
-                await api.delete(`/users/${userId}`)
+                await api.delete(`/users/me${userId}`)
                 setUsers(users.filter(u => u.id !== userId))
             } catch (err) {
                 console.error("Erro ao excluir usuário:", err)
