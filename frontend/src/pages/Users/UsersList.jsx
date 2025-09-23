@@ -1,45 +1,64 @@
 import React, { useState, useEffect } from 'react'
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa'
+import { FaEdit, FaTrash } from 'react-icons/fa'
 import '../../styles.css'
 import UsersEdit from './UserEdit'
 import api from "../../services/api"
 
 function UsersList() {
     const [users, setUsers] = useState([])
-    const [editingUsers, setEditingUsers] = useState(null)
+    const [editingUser, setEditingUser] = useState(null)
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchUser = async () => {
             try {
-                const res = await api.get("/users/me")
-                setUsers(res.data);
+                const token = localStorage.getItem("token")
+                if (!token) return
+
+                const res = await api.get("/users/me", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                setUsers([res.data]) // transforma em array para map
             } catch (err) {
-                console.error("Erro ao buscar usuários:", err)
+                console.error("Erro ao buscar usuário:", err)
             }
-        };
-        fetchUsers()
+        }
+        fetchUser()
     }, [])
 
-    const handleEdit = (users) => {
-        setEditingUsers(users)
+    const handleEdit = (user) => {
+        setEditingUser(user)
     }
 
-    const handleUpdateUsers = async (updatedUser) => {
+    const handleUpdateUser = async (updatedUser) => {
         try {
-            const res = await api.put(`/users/me${updatedUser.id}`, updatedUser)
-            setUsers(users.map(u => u.id === updatedUser.id ? res.data : u))
-            setEditingUsers(null)
-            alert("Usuário atualizado com sucesso!")
+            const token = localStorage.getItem("token")
+            const res = await api.put("/users/me", updatedUser, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            setUsers([res.data])
+            setEditingUser(null)
+            alert("Usuário atualizado com sucesso")
         } catch (err) {
             console.error("Erro ao atualizar usuário:", err)
         }
     }
 
-    const handleDelete = async (userId) => {
-        if (window.confirm("Deseja realmente excluir este usuário?")) {
+    const handleDelete = async () => {
+        if (window.confirm("Deseja realmente excluir sua conta?")) {
             try {
-                await api.delete(`/users/me${userId}`)
-                setUsers(users.filter(u => u.id !== userId))
+                const token = localStorage.getItem("token")
+                await api.delete("/users/me", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                setUsers([])
+                localStorage.removeItem("token")
+                alert("Conta excluída com sucesso")
             } catch (err) {
                 console.error("Erro ao excluir usuário:", err)
             }
@@ -49,40 +68,40 @@ function UsersList() {
     return (
         <div className="companies-container">
             <div className="companies-header">
-                <h2>Lista de Usuários</h2>
+                <h2>Meu Perfil</h2>
             </div>
 
-            <table className="companies-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map(user => (
-                        <tr key={user.id}>
-                            <td>{user.name}</td>
-                            <td>{user.email}</td>
-                            <td>
-                                <FaEdit className="action-icon edit" onClick={() => handleEdit(user)} />
-                                <FaTrash className="action-icon delete" onClick={() => handleDelete(user.id)} />
-                            </td>
+            {users.length > 0 && (
+                <table className="companies-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Ações</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            {/* Modal de Edição */}
-            {editingUsers && (
-                <UsersEdit
-                    users={editingUsers}
-                    onClose={() => setEditingUsers(null)}
-                    onSave={handleUpdateUsers}
-                />
+                    </thead>
+                    <tbody>
+                        {users.map(user => (
+                            <tr key={user.id}>
+                                <td>{user.name}</td>
+                                <td>{user.email}</td>
+                                <td>
+                                    <FaEdit className="action-icon edit" onClick={() => handleEdit(user)} />
+                                    <FaTrash className="action-icon delete" onClick={handleDelete} />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )}
 
+            {editingUser && (
+                <UsersEdit
+                    users={editingUser}
+                    onClose={() => setEditingUser(null)}
+                    onSave={handleUpdateUser}
+                />
+            )}
         </div>
     )
 }
