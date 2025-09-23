@@ -1,12 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const clientController = require("../controllers/clientController");
+const express = require("express")
+const router = express.Router()
+const clientController = require("../controllers/clientController")
+const { authMiddleware } = require('../middleware/auth')
 
-// Rotas CRUD de clientes
-router.post("/", clientController.createClient);      // Criar cliente
-router.get("/", clientController.getClients);         // Listar todos
-router.get("/:id", clientController.getClientById);   // Buscar por ID
-router.put("/:id", clientController.updateClient);    // Atualizar
-router.delete("/:id", clientController.deleteClient); // Deletar
+router.post("/", authMiddleware, clientController.createClient)
+router.get("/", authMiddleware, clientController.getClients)
+router.get("/:id", authMiddleware, clientController.getClientById)
+router.put("/:id", authMiddleware, clientController.updateClient)
+router.delete("/:id", authMiddleware, clientController.deleteClient)
 
-module.exports = router;
+module.exports = router

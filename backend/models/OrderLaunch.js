@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const orderLaunchSchema = new mongoose.Schema(
   {
@@ -19,6 +19,6 @@ const orderLaunchSchema = new mongoose.Schema(
     }
   },
   { timestamps: true }
-);
+)
 
-module.exports = mongoose.model('OrderLaunch', orderLaunchSchema);
+module.exports = mongoose.model('OrderLaunch', orderLaunchSchema)
